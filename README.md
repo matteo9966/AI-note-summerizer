@@ -1,0 +1,8 @@
+# AI Note Summarizer — Monorepo
+
+This repository is initialized as an npm monorepo with two empty workspaces:
+
+- frontend
+- backend
+
+Workspaces are intentionally empty — tell me how you'd like to structure them next.
