@@ -7,6 +7,13 @@ import './app.css'
 export function App() {
   const [count, setCount] = useState(0)
 
+  // Sample notes data
+  const notes = [
+    { id: 1, title: 'First Note', content: 'This is the first note.' },
+    { id: 2, title: 'Second Note', content: 'This is the second note.' },
+    { id: 3, title: 'Third Note', content: 'This is the third note.' },
+  ]
+
   return (
     <>
       <section id="center">
@@ -16,7 +23,7 @@ export function App() {
           <img src={viteLogo} class="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>Get started</h1>
+          <h1>Notes Application</h1>
           <p>
             Edit <code>src/app.tsx</code> and save to test <code>HMR</code>
           </p>
@@ -27,6 +34,18 @@ export function App() {
       </section>
 
       <div class="ticks"></div>
+
+      <section id="notes">
+        <h2>Notes</h2>
+        <ul>
+          {notes.map((note) => (
+            <li key={note.id}>
+              <h3>{note.title}</h3>
+              <p>{note.content}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section id="next-steps">
         <div id="docs">
@@ -50,51 +69,7 @@ export function App() {
             </li>
           </ul>
         </div>
-        <div id="social">
-          <svg class="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg class="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg class="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg class="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg class="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
       </section>
-
-      <div class="ticks"></div>
-      <section id="spacer"></section>
     </>
   )
 }

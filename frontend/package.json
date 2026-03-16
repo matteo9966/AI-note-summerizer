@@ -9,13 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.13.6",
     "preact": "^10.28.4"
   },
   "devDependencies": {
+    "@ai/types": "*",
     "@preact/preset-vite": "^2.10.3",
     "@types/node": "^24.12.0",
     "typescript": "~5.9.3",
-    "vite": "^8.0.0",
-    "@ai/types": "*"
+    "vite": "^8.0.0"
   }
 }
