@@ -1,13 +1,12 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import notesRouter from './routes/notes';
-
+import {prisma} from './lib/prisma-client';
 const app = express();
 app.use(express.json());
 const port = Number(process.env.PORT ?? 4000);
 
-const prisma = new PrismaClient();
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
