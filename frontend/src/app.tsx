@@ -47,7 +47,7 @@ export function App() {
         <section id="notes">
           <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-4">Notes</h2>
           {loading ? (
-            <Skeleton rows={3} />
+            <Skeleton rows={3} rowHeight={16} />
           ) : (
             <ul class="space-y-4">
               {notes.map((note) => (
