@@ -28,3 +28,20 @@ This agent is specialized for creating and managing frontend components and serv
 ## Notes
 - Ensure that all generated code is placed in the appropriate `frontend/src` subdirectories.
 - Follow the project's existing TypeScript and Preact conventions.
+
+# Styling
+- Use Tailwind CSS for styling components, following the project's design guidelines.
+- always use mobile first approach when applying styles to ensure responsiveness across different devices.
+
+
+# Folder structure
+- All components should be placed in the `frontend/src/components` folder.
+- Each component should be created inside its own folder named after the component, containing the index.tsx file, since the project is using tailwindcss, there is no need to create a separate css file for each component, instead, the styles can be added directly to the index.tsx file using tailwind classes.
+
+# Services
+- Services should be created in the `frontend/src/services` folder.
+- Each service should be created inside its own folder named after the service, containing an index.ts file. Services should follow the Axios client singleton pattern for making HTTP requests.
+
+# File size
+- Keep individual component and service files concise, ideally under 200 lines of code, to maintain readability and manageability.
+

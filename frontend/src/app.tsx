@@ -1,75 +1,65 @@
-import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect, useState } from 'preact/hooks'
 import './app.css'
+import NoteForm from './components/NoteForm'
+import Skeleton from './components/Skeleton'
+import { createNote, getNotes } from './services/apiService'
+import type { Note } from '@ai/types'
 
 export function App() {
-  const [count, setCount] = useState(0)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [loading, setLoading] = useState(false)
 
-  // Sample notes data
-  const notes = [
-    { id: 1, title: 'First Note', content: 'This is the first note.' },
-    { id: 2, title: 'Second Note', content: 'This is the second note.' },
-    { id: 3, title: 'Third Note', content: 'This is the third note.' },
-  ]
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      try {
+        const data = await getNotes()
+        setNotes(data)
+      } catch (err) {
+        // ignore for now or add error handling
+        console.error('Failed to load notes', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    load()
+  }, [])
+
+  const handleCreate = async (note: { title: string; content: string }) => {
+    try {
+      const created = await createNote(note)
+      setNotes((prev) => [created, ...prev])
+    } catch (err) {
+      console.error('Failed to create note', err)
+    }
+  }
 
   return (
     <>
-      <section id="center">
-        <div class="hero">
-          <img src={heroImg} class="base" width="170" height="179" alt="" />
-          <img src={preactLogo} class="framework" alt="Preact logo" />
-          <img src={viteLogo} class="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Notes Application</h1>
-          <p>
-            Edit <code>src/app.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button class="counter" onClick={() => setCount((count) => count + 1)}>
-          Count is {count}
-        </button>
-      </section>
-
       <div class="ticks"></div>
+      <main class="mx-auto w-full max-w-4xl px-4 py-8">
+        <section id="create-note" class="mb-8">
+          <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-4">Create Note</h2>
+          <NoteForm onSubmit={handleCreate} />
+        </section>
 
-      <section id="notes">
-        <h2>Notes</h2>
-        <ul>
-          {notes.map((note) => (
-            <li key={note.id}>
-              <h3>{note.title}</h3>
-              <p>{note.content}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg class="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img class="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://preactjs.com/" target="_blank">
-                <img class="button-icon" src={preactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <section id="notes">
+          <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-4">Notes</h2>
+          {loading ? (
+            <Skeleton rows={3} />
+          ) : (
+            <ul class="space-y-4">
+              {notes.map((note) => (
+                <li key={note.id} class="p-4 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 text-left">
+                  <h3 class="text-lg font-medium text-slate-900 dark:text-slate-100">{note.title}</h3>
+                  <p class="mt-1 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{note.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
     </>
   )
 }
