@@ -21,3 +21,14 @@ export const aiSummarize = (req: Request, res: Response) => {
   // TODO: implement AI summarize
   return res.json({ message: 'TODO: AI summarize endpoint' });
 };
+
+export const uploadNoteFile = (req: Request, res: Response) => {
+  const files = req.files as Express.Multer.File[] | undefined;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  
+
+}
+;
