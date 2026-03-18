@@ -10,7 +10,7 @@ export  const initSwagger = (app: ReturnType<typeof express>) => {
         version: "1.0.0",
       },
     },
-    apis: ["./src/routes/index.ts"],
+    apis: ["./src/**/*.ts"], // Adjust the path to your route files
   });
 
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
