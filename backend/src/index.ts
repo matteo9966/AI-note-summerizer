@@ -3,7 +3,10 @@ import express, { Request, Response } from 'express';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import notesRouter from './routes/notes';
 import {prisma} from './lib/prisma-client';
+import { initSwagger } from './lib/swagger';
+
 const app = express();
+initSwagger(app);
 app.use(express.json());
 const port = Number(process.env.PORT ?? 4000);
 
