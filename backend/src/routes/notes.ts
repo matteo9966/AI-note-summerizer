@@ -9,5 +9,7 @@ const router = express.Router();
 // router.get('/ai-summerize/:noteId', noteController.aiSummarize);
 router.post('/note-file', upload.single("file"),noteController.uploadNoteFile);
 router.get('/notes', noteController.getNotes);
+router.get('/notes/:id', noteController.getNoteContentById);
+router.get('/notes/:id/summary', noteController.getNoteSummaryById);
 
 export default router;

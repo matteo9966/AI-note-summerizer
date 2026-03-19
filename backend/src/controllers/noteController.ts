@@ -1,9 +1,9 @@
 import { Request, RequestHandler, Response } from 'express';
 import { ServerError } from '../types/ServerError';
 import { validateMimetype } from '../utils/validateMimetype';
-import { uploadNoteFileAndStoreData } from '../services/noteService';
+import { getNoteFileContentBys3Key, uploadNoteFileAndStoreData } from '../services/noteService';
 import { prisma } from '../lib/prisma-client';
-
+import { getNoteSummary } from '../services/noteService';
 // Wrapper function to handle errors
 const handleErrors =  (fn: (req: Request, res: Response) => Promise<any>) => {
   return async (req: Request, res: Response) => {
@@ -149,3 +149,158 @@ export const getNotes = handleErrors(async (_req: Request, res: Response) => {
   return res.json(response);
  
 })
+
+
+/**
+ * @swagger
+ * /notes/{id}:
+ *   get:
+ *     summary: Retrieve a note by ID
+ *     description: Fetches a specific note by its ID and includes its content.
+ *     tags:
+ *       - Notes
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the note.
+ *     responses:
+ *       200:
+ *         description: The requested note with its content.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: The unique identifier of the note.
+ *                 title:
+ *                   type: string
+ *                   description: The title of the note.
+ *                 content:
+ *                   type: string
+ *                   description: The content of the note.
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: The creation timestamp of the note.
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: The last update timestamp of the note.
+ *       400:
+ *         description: Bad request, e.g., invalid or missing note ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note ID is required and should be a string!
+ *       404:
+ *         description: Note not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note not found.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal Server Error
+ */
+export const getNoteContentById = handleErrors(async (req: Request, res: Response) => {
+  const noteId = req.params.id;
+  if (!noteId && typeof noteId !== 'string') {
+    throw new ServerError('Note ID is required and should be a string!', 400);
+  }
+  const note = await prisma.note.findUnique({
+    where: { id: +noteId },
+  });
+  if (!note) {
+    throw new ServerError('Note not found', 404);
+  }
+  const content = await getNoteFileContentBys3Key(note.s3Key);
+  return res.json({ ...note, content });
+});
+
+
+export const getNoteSummaryById = handleErrors(async (req: Request, res: Response) => {
+  const noteId = req.params.id;
+  if (!noteId && typeof noteId !== 'string') {
+    throw new ServerError('Note ID is required and should be a string!', 400);
+  }
+  const summary = await getNoteSummary(noteId);
+  return res.json({ summary });
+})
+
+/**
+ * @swagger
+ * /notes/{id}/summary:
+ *   get:
+ *     summary: Retrieve a generated summary for a note
+ *     description: Returns the AI-generated summary for the specified note. If a cached summary exists it will be returned; otherwise a new summary will be generated and stored.
+ *     tags:
+ *       - Notes
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the note to summarize.
+ *     responses:
+ *       200:
+ *         description: The generated summary for the note.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 summary:
+ *                   type: string
+ *                   description: The AI-generated summary text.
+ *       400:
+ *         description: Bad request, e.g., missing or invalid note ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note ID is required and should be a string!
+ *       404:
+ *         description: Note not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note not found.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal Server Error
+ */
