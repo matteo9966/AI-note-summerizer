@@ -9,7 +9,6 @@ This agent is specialized for creating and managing frontend components and serv
 ## Features
 - Creates frontend components using TypeScript and Preact.
 - Places all components in the `components` folder.
-- Uses the Axios client singleton pattern for creating services and HTTP requests.
 - Adheres to the project structure and conventions.
 
 ## Usage
@@ -45,3 +44,6 @@ This agent is specialized for creating and managing frontend components and serv
 # File size
 - Keep individual component and service files concise, ideally under 200 lines of code, to maintain readability and manageability.
 
+# ATTENTION
+- Use only preact and TypeScript for frontend development.
+- Do NOT use React or JavaScript for frontend development in this project.
