@@ -86,3 +86,16 @@ export const getNoteSummary = async (id: string): Promise<string> => {
   });
   return summary;
 };
+
+
+export const getSignedUrlForNoteById = async (id: string): Promise<string> => {
+  const note = await prisma.note.findFirst({
+    where: {
+      id: +id,
+    },
+  });
+  if (!note) {
+    throw new Error("Note not found");
+  }
+  return getSignedUrlForS3Object(note.s3Key);
+};

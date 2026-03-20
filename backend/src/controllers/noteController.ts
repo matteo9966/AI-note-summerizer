@@ -1,24 +1,27 @@
-import { Request, RequestHandler, Response } from 'express';
-import { ServerError } from '../types/ServerError';
-import { validateMimetype } from '../utils/validateMimetype';
-import { getNoteFileContentBys3Key, uploadNoteFileAndStoreData } from '../services/noteService';
-import { prisma } from '../lib/prisma-client';
-import { getNoteSummary } from '../services/noteService';
+import { Request, RequestHandler, Response } from "express";
+import { ServerError } from "../types/ServerError";
+import { validateMimetype } from "../utils/validateMimetype";
+import {
+  getNoteFileContentBys3Key,
+  getSignedUrlForNoteById,
+  uploadNoteFileAndStoreData,
+} from "../services/noteService";
+import { prisma } from "../lib/prisma-client";
+import { getNoteSummary } from "../services/noteService";
 // Wrapper function to handle errors
-const handleErrors =  (fn: (req: Request, res: Response) => Promise<any>) => {
+const handleErrors = (fn: (req: Request, res: Response) => Promise<any>) => {
   return async (req: Request, res: Response) => {
     try {
       return await fn(req, res);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       if (error instanceof ServerError) {
         return res.status(error.statusCode).json({ error: error.message });
       }
-      return res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: "Internal Server Error" });
     }
   };
 };
-
 
 /**
  * @swagger
@@ -77,25 +80,33 @@ const handleErrors =  (fn: (req: Request, res: Response) => Promise<any>) => {
  *                   type: string
  *                   example: Internal Server Error
  */
-export const uploadNoteFile = handleErrors(async (req: Request, res: Response) => {
-  const file = req.file as Express.Multer.File | undefined;
-  if (!file) {
-    throw new ServerError('No file uploaded', 400);
-  }
+export const uploadNoteFile = handleErrors(
+  async (req: Request, res: Response) => {
+    const file = req.file as Express.Multer.File | undefined;
+    if (!file) {
+      throw new ServerError("No file uploaded", 400);
+    }
 
-  const fileTitle = req.body.title as string | undefined;
-  const originalFileName = file?.originalname || fileTitle || 'untitled';
-  const isValidMimeType = validateMimetype(originalFileName, ['text/plain', 'text/markdown']);
+    const fileTitle = req.body.title as string | undefined;
+    const originalFileName = file?.originalname || fileTitle || "untitled";
+    const isValidMimeType = validateMimetype(originalFileName, [
+      "text/plain",
+      "text/markdown",
+    ]);
 
-  if (!isValidMimeType) {
-    throw new ServerError('Invalid file type. Only text and markdown files are allowed.', 400);
-  }
+    if (!isValidMimeType) {
+      throw new ServerError(
+        "Invalid file type. Only text and markdown files are allowed.",
+        400,
+      );
+    }
 
-  const s3Key = await uploadNoteFileAndStoreData(file, fileTitle);
-  return res.status(201).json({ message: 'File uploaded successfully', s3Key });
-});
-
-
+    const s3Key = await uploadNoteFileAndStoreData(file, fileTitle);
+    return res
+      .status(201)
+      .json({ message: "File uploaded successfully", s3Key });
+  },
+);
 
 /**
  * @swagger
@@ -143,13 +154,10 @@ export const uploadNoteFile = handleErrors(async (req: Request, res: Response) =
  * @returns {Promise<Response>} A JSON response containing all notes.
  */
 export const getNotes = handleErrors(async (_req: Request, res: Response) => {
-   
-  const response = await  prisma.note.findMany();
-  
-  return res.json(response);
- 
-})
+  const response = await prisma.note.findMany();
 
+  return res.json(response);
+});
 
 /**
  * @swagger
@@ -222,30 +230,33 @@ export const getNotes = handleErrors(async (_req: Request, res: Response) => {
  *                   type: string
  *                   example: Internal Server Error
  */
-export const getNoteContentById = handleErrors(async (req: Request, res: Response) => {
-  const noteId = req.params.id;
-  if (!noteId && typeof noteId !== 'string') {
-    throw new ServerError('Note ID is required and should be a string!', 400);
-  }
-  const note = await prisma.note.findUnique({
-    where: { id: +noteId },
-  });
-  if (!note) {
-    throw new ServerError('Note not found', 404);
-  }
-  const content = await getNoteFileContentBys3Key(note.s3Key);
-  return res.json({ ...note, content });
-});
+export const getNoteContentById = handleErrors(
+  async (req: Request, res: Response) => {
+    const noteId = req.params.id;
+    if (!noteId && typeof noteId !== "string") {
+      throw new ServerError("Note ID is required and should be a string!", 400);
+    }
+    const note = await prisma.note.findUnique({
+      where: { id: +noteId },
+    });
+    if (!note) {
+      throw new ServerError("Note not found", 404);
+    }
+    const content = await getNoteFileContentBys3Key(note.s3Key);
+    return res.json({ ...note, content });
+  },
+);
 
-
-export const getNoteSummaryById = handleErrors(async (req: Request, res: Response) => {
-  const noteId = req.params.id;
-  if (!noteId && typeof noteId !== 'string') {
-    throw new ServerError('Note ID is required and should be a string!', 400);
-  }
-  const summary = await getNoteSummary(noteId);
-  return res.json({ summary });
-})
+export const getNoteSummaryById = handleErrors(
+  async (req: Request, res: Response) => {
+    const noteId = req.params.id;
+    if (!noteId && typeof noteId !== "string") {
+      throw new ServerError("Note ID is required and should be a string!", 400);
+    }
+    const summary = await getNoteSummary(noteId);
+    return res.json({ summary });
+  },
+);
 
 /**
  * @swagger
@@ -304,3 +315,80 @@ export const getNoteSummaryById = handleErrors(async (req: Request, res: Respons
  *                   type: string
  *                   example: Internal Server Error
  */
+
+/**
+ * @swagger
+ * /notes/{id}/file:
+ *   get:
+ *     summary: Download a note file by ID
+ *     description: Fetches the file content of a specific note by its ID and returns it as a downloadable file.
+ *     tags:
+ *       - Notes
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the note.
+ *     responses:
+ *       200:
+ *         description: The requested note file content.
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Bad request, e.g., missing or invalid note ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note ID is required and should be a string!
+ *       404:
+ *         description: Note not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Note not found.
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal Server Error
+ */
+
+export const getNoteFileById = handleErrors(
+  async (req: Request, res: Response) => {
+    const noteId = req.params.id;
+    if (!noteId) {
+      throw new ServerError("Note ID is required and should be a string!", 400);
+    }
+    const note = await prisma.note.findUnique({
+      where: { id: +noteId },
+    });
+    if (!note) {
+      throw new ServerError("Note not found", 404);
+    }
+    const fileContent = await getSignedUrlForNoteById(note.id.toString());
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${note.title || "note.txt"}"`,
+    );
+    res.setHeader("Content-Type", "text/plain");
+    return res.send(fileContent);
+  },
+);
