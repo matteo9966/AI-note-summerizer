@@ -1,5 +1,7 @@
 import type { JSX } from "preact/jsx-runtime";
 
+import styles from './Table.module.css';
+
 interface Column<T> {
   key: keyof T;
   header: string;
@@ -13,26 +15,26 @@ interface TableProps<T> {
 
 function Table<T>({ columns, data }: TableProps<T>) {
   return (
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
+    <table className={styles.table}>
+      <thead className={styles.thead}>
         <tr>
           {columns.map((col) => (
             <th
               key={col.key as string}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className={styles.th}
             >
               {col.header}
             </th>
           ))}
         </tr>
       </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
+      <tbody className={styles.tbody}>
         {data.map((row, index) => (
-          <tr key={index}>
+          <tr key={index} className={styles.tr}>
             {columns.map((col) => (
               <td
                 key={col.key as string}
-                className="px-6 py-4 whitespace-nowrap"
+                className={styles.td}
               >
                 {col.render(row[col.key], row)}
               </td>
